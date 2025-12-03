@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可编辑二奢商品拍摄质量检核系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #A0522D;
+            --light-color: #FAEBD7;
+            --dark-color: #5D4037;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --border-color: #ddd;
+            --edit-color: #2196F3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f9f5f0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        h1 i {
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .mode-selector {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .mode-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mode-btn.use-mode {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .mode-btn.edit-mode {
+            background-color: var(--edit-color);
+            color: white;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .category-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .category-btn {
+            padding: 10px 20px;
+            background-color: var(--light-color);
+            border: 2px solid var(--border-color);
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-btn:hover {
+            background-color: #f0e6d6;
+        }
+        
+        .category-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        
+        .download-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-download {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-edit {
+            background-color: var(--edit-color);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background-color: #0b7dda;
+        }
+        
+        .btn-save {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-add {
+            background-color: var(--warning-color);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .checklist-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .checklist-container.active {
+            display: block;
+        }
+        
+        .checklist-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .checklist-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .checklist-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+        
+        .info-group input, .info-group select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .checklist-sections {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .edit-section-btn {
+            background-color: var(--edit-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background-color: var(--light-color);
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        
+        .requirement-col {
+            width: 40%;
+        }
+        
+        .standard-col {
+            width: 40%;
+        }
+        
+        .status-col {
+            width: 20%;
+            text-align: center;
+        }
+        
+        .status-select {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .status-pass {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .status-fail {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .edit-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .move-up-btn {
+            background-color: #e0e0e0;
+        }
+        
+        .move-down-btn {
+            background-color: #e0e0e0;
+        }
+        
+        .delete-btn {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+        
+        .checklist-footer {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .conclusion {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .conclusion-select {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: 2px solid var(--border-color);
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        
+        .conclusion-pass {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .conclusion-fail {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        .conclusion-remark {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            flex-grow: 1;
+        }
+        
+        .signature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .signature input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            min-width: 150px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .instructions {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+        
+        .stat-info p {
+            color: #666;
+        }
+        
+        .edit-notice {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--edit-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .edit-notice i {
+            color: var(--edit-color);
+            font-size: 1.2rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-input-group {
+            margin-bottom: 15px;
+        }
+        
+        .modal-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .modal-input-group input,
+        .modal-input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        
+        .modal-input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        @media (max-width: 1024px) {
+            .checklist-info {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .category-selector, .download-buttons {
+                justify-content: center;
+            }
+            
+            .checklist-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .checklist-footer {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .conclusion {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .signature {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-camera-retro"></i> 可编辑二奢商品拍摄质量检核系统</h1>
+            <p class="subtitle">用于规范包袋、腕表、首饰、鞋靴、服饰及配件等六大类二奢商品拍摄标准，管理者可编辑检核内容</p>
+        </header>
+        
+        <div class="mode-selector">
+            <button id="use-mode-btn" class="mode-btn use-mode">
+                <i class="fas fa-check-circle"></i> 使用模式（进行检核）
+            </button>
+            <button id="edit-mode-btn" class="mode-btn edit-mode">
+                <i class="fas fa-edit"></i> 编辑模式（管理内容）
+            </button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="total-checked">0</h3>
+                    <p>已检核项目</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="passed-items">0</h3>
+                    <p>通过项目</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="failed-items">0</h3>
+                    <p>未通过项目</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="edit-notice" class="edit-notice" style="display: none;">
+            <i class="fas fa-edit"></i>
+            <div>
+                <strong>您现在处于编辑模式</strong>
+                <p>您可以修改检核项目、要求标准，添加/删除项目，调整顺序。修改后请点击"保存当前品类"按钮。</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="category-selector">
+                <button class="category-btn active" data-category="bag">
+                    <i class="fas fa-shopping-bag"></i> 包袋类
+                </button>
+                <button class="category-btn" data-category="watch">
+                    <i class="fas fa-clock"></i> 腕表类
+                </button>
+                <button class="category-btn" data-category="jewelry">
+                    <i class="fas fa-gem"></i> 首饰类
+                </button>
+                <button class="category-btn" data-category="shoes">
+                    <i class="fas fa-shoe-prints"></i> 鞋靴类
+                </button>
+                <button class="category-btn" data-category="clothing">
+                    <i class="fas fa-tshirt"></i> 服饰类
+                </button>
+                <button class="category-btn" data-category="accessories">
+                    <i class="fas fa-scarf"></i> 配件类
+                </button>
+            </div>
+            
+            <div class="download-buttons">
+                <button class="btn btn-reset" id="reset-btn">
+                    <i class="fas fa-redo"></i> 重置当前检核表
+                </button>
+                <button class="btn btn-download" id="download-word">
+                    <i class="fas fa-file-word"></i> 下载Word报告
+                </button>
+                <button class="btn btn-download" id="download-excel">
+                    <i class="fas fa-file-excel"></i> 下载Excel报告
+                </button>
+                <button class="btn btn-save" id="save-category-btn" style="display: none;">
+                    <i class="fas fa-save"></i> 保存当前品类
+                </button>
+            </div>
+        </div>
+        
+        <!-- 检核表容器，内容将由JavaScript动态生成 -->
+        <div id="checklist-container"></div>
+        
+        <!-- 添加项目/部分的模态框 -->
+        <div id="edit-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modal-title">添加检核项目</h3>
+                    <button class="close-modal" id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-input-group">
+                        <label for="modal-item-name">项目名称</label>
+                        <input type="text" id="modal-item-name" placeholder="例如：整体六面图">
+                    </div>
+                    <div class="modal-input-group">
+                        <label for="modal-item-standard">要求标准</label>
+                        <textarea id="modal-item-standard" placeholder="例如：清晰拍摄前、后、左、右、顶、底六个完整面。"></textarea>
+                    </div>
+                    <div class="modal-input-group" id="modal-section-title-group" style="display: none;">
+                        <label for="modal-section-title">部分标题</label>
+                        <input type="text" id="modal-section-title" placeholder="例如：第一部分：基础通用要求">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-reset" id="modal-cancel">取消</button>
+                    <button class="btn btn-save" id="modal-save">保存</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 可编辑二奢商品拍摄质量检核系统 | 管理者可编辑检核内容 | 版本 2.1</p>
+            <p>数据保存在浏览器本地存储中，清除浏览器数据会丢失修改内容</p>
+        </footer>
+    </div>
+
+    <script>
+        // 默认检核表数据（如果本地存储中没有数据，则使用此数据）
+        const defaultChecklistData = {
+            bag: {
+                name: "包袋类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求（所有照片都必须满足）",
+                        items: [
+                            { item: "拍摄环境", standard: "在干净、整洁、光线均匀的室内环境中拍摄，背景为纯色（如白、灰背景布/板），无杂物干扰。" },
+                            { item: "光线与清晰度", standard: "光线充足，无浓重阴影或过曝斑点。照片对焦清晰，无模糊、抖动。" },
+                            { item: "色彩保真", standard: "颜色还原真实，无严重色差。避免使用滤镜、美颜等功能。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与瑕疵）",
+                        items: [
+                            { item: "整体六面图", standard: "清晰拍摄前、后、左、右、顶、底六个完整面。" },
+                            { item: "五金件特写", standard: "五金logo、锁扣、肩带连接处、拉链头及齿，要求正面、清晰、无强反光。" },
+                            { item: "瑕疵必拍", standard: "所有可见瑕疵必须单独、清晰对焦拍摄！如划痕、污渍、磨损、裂纹、掉色、氧化、变形等。" },
+                            { item: "附件与包装", standard: "完整拍摄所有附件，如防尘袋、盒子、说明书、保卡、票据、备用配件等。保卡信息需清晰。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "主品牌标识", standard: "外部五金Logo/皮标刻印，正面高清，字体工艺清晰。" },
+                            { item: "身份编码", standard: "内衬皮标/烙印、内置镭射标。必须对焦清晰，无反光模糊（可侧光辅助）。" },
+                            { item: "特殊工艺", standard: "老花/花纹对齐情况、颗粒感、皮革纹理、缝线针距、收尾工艺等。" }
+                        ]
+                    }
+                ]
+            },
+            watch: {
+                name: "腕表类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求",
+                        items: [
+                            { item: "环境与背景", standard: "纯色背景，使用软布垫衬，避免划伤。光线充足，避免表镜反光。" },
+                            { item: "画质与对焦", standard: "图片高清，对焦清晰，特别是表盘刻度和背透机芯。" },
+                            { item: "色彩与真实", standard: "无色差，真实呈现表盘颜色、金属色泽及夜光效果（如拍摄）。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与瑕疵）",
+                        items: [
+                            { item: "整体多角度图", standard: "表盘正面、表背、两侧（表冠侧）、表扣正面。" },
+                            { item: "表盘与表镜", standard: "表盘全景（指针在10:10位置为佳）、日历窗/功能盘特写。检查表镜有无划痕、镀膜损伤。" },
+                            { item: "表壳与表圈", standard: "表耳、表圈刻字/镶嵌、表冠logo及纹路。重点拍摄表壳侧面拉丝/抛光工艺及磨损。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "表盘细节", standard: "品牌Logo、刻度、指针工艺、SWISS MADE等字印，微距拍摄，要求清晰无重影。" },
+                            { item: "表身编码", standard: "表耳之间的型号/序列号刻字（需多角度打光拍清）、表背刻字。" },
+                            { item: "机芯拍摄", standard: "背透款：清晰拍摄完整机芯，包括摆轮、避震器、宝石轴承、夹板刻字及打磨纹路。" }
+                        ]
+                    }
+                ]
+            },
+            jewelry: {
+                name: "首饰类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求",
+                        items: [
+                            { item: "环境与背景", standard: "纯色背景（建议深色衬宝石火彩），使用微距模式，光线均匀无杂影。" },
+                            { item: "画质与对焦", standard: "图片高清，对焦精准，特别是刻印和宝石。" },
+                            { item: "色彩与真实", standard: "无色差，真实呈现金属色与宝石颜色。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与瑕疵）",
+                        items: [
+                            { item: "整体多角度图", standard: "正面、背面、侧面佩戴效果展示图。" },
+                            { item: "主体结构特写", standard: "项链/手链的扣头、链节；戒指的戒圈、戒臂；耳钉的背面结构。" },
+                            { item: "宝石/主石特写", standard: "正面俯拍，展示宝石切工、颜色、火彩及镶嵌方式（爪镶、包镶等）。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "贵金属印记", standard: "戒圈内侧、吊牌背面、扣头内侧的品牌Logo、Au750/18K、Pt950、AG925等纯度印记、厂标/责任印记。必须微距拍清。" },
+                            { item: "品牌刻印/标签", standard: "品牌特有的字体、排版方式的刻印。项链的龙虾扣/T扣上的品牌Logo。" },
+                            { item: "宝石特征", standard: "钻石的腰码（如有）、特殊内含物；彩色宝石的生长纹、色带等天然特征。" }
+                        ]
+                    }
+                ]
+            },
+            shoes: {
+                name: "鞋靴类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求",
+                        items: [
+                            { item: "环境与背景", standard: "纯色背景，清洁无杂物。单只拍摄，确保稳定不歪倒。" },
+                            { item: "画质与对焦", standard: "图片高清，对焦清晰，重点部位需特写。" },
+                            { item: "配对展示", standard: "必须左右脚成对拍摄，并在整体图中并列展示。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与磨损）",
+                        items: [
+                            { item: "整体多角度图", standard: "左右脚并列正面、侧面、后方、45度俯视角。" },
+                            { item: "鞋面与材质", standard: "左右脚鞋头、鞋身、鞋带孔、后跟特写，展示材质纹理与整体形状。" },
+                            { item: "鞋底特写", standard: "左右脚外底（鞋底花纹）、前掌、后跟磨损情况。必须清晰展示磨损程度（平放及侧立拍摄）。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "鞋标/鞋舌标", standard: "鞋舌内侧或鞋帮内侧的品牌尺码标。需拍清品牌Logo、尺码、产地、材质、型号等信息。（核心鉴定点）" },
+                            { item: "中底与工艺", standard: "取出鞋垫后，拍摄中底缝线/走线、胶印、印刷信息（如有）。工艺细节是重要鉴定点。" },
+                            { item: "品牌特征工艺", standard: "特定位置五金Logo（如Gucci马蹄扣）、经典花纹（如LV老花、Dior Oblique）、特殊缝线方式/针距。" }
+                        ]
+                    }
+                ]
+            },
+            clothing: {
+                name: "服饰类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求",
+                        items: [
+                            { item: "环境与背景", standard: "纯色背景（建议浅色），平整无褶皱。衣物需熨烫平整后悬挂或平铺拍摄。" },
+                            { item: "画质与对焦", standard: "高清图片，对焦清晰，特别是标签和细微瑕疵处。" },
+                            { item: "版型展示", standard: "悬挂拍摄展示正面、背面整体轮廓。如有条件，平铺拍摄更佳。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与瑕疵）",
+                        items: [
+                            { item: "整体展示", standard: "悬挂/平铺的正面全景、背面全景。" },
+                            { item: "领口/肩部特写", standard: "前领、后领、肩线、袖窿处。检查变形、污渍及磨损。" },
+                            { item: "门襟与扣件", standard: "纽扣、拉链、袖扣、腰带（如有）的正反面特写，检查功能与磨损。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "品牌主标/领标", standard: "领部、下摆等处的品牌织标或印标。微距拍清字体、刺绣工艺、缝线方式。" },
+                            { item: "完整水洗标", standard: "所有水洗标（通常缝在侧缝），微距拍清成分、洗涤符号、产地、编号等全部文字。字体排版是核心鉴定点。" },
+                            { item: "品牌特征细节", standard: "经典图案/格纹的对齐方式（如Burberry风衣格纹、Dior千鸟格）、独家纽扣/拉链头刻字、特殊面料工艺。" }
+                        ]
+                    }
+                ]
+            },
+            accessories: {
+                name: "配件类",
+                sections: [
+                    {
+                        title: "第一部分：基础通用要求",
+                        items: [
+                            { item: "环境与背景", standard: "纯色背景，物品摆放端正。小件物品建议使用微距模式。" },
+                            { item: "画质与对焦", standard: "高清图片，对焦清晰，特别是五金刻印和标签。" },
+                            { item: "尺寸展示", standard: "腰带：平铺全长，并展示可调节范围。围巾：平铺展示尺寸与花纹。帽子：展示正面、侧面、内部。" }
+                        ]
+                    },
+                    {
+                        title: "第二部分：成色展示图（必须全面展示状态与瑕疵）",
+                        items: [
+                            { item: "整体展示", standard: "腰带：平铺全景（带头带尾）、卷起状态。围巾：平铺全景展示花纹，可加折叠图。帽子：正面、侧面、后方、顶部。" },
+                            { item: "主体材质特写", standard: "腰带：皮带正反面纹理、边缘封油。围巾：面料纹理、流苏/锁边细节。帽子：帽檐、帽冠材质。" },
+                            { item: "五金/扣件特写", standard: "腰带：皮带头正反面、针扣。帽子：调节扣、装饰扣等。" }
+                        ]
+                    },
+                    {
+                        title: "第三部分：核心鉴定点拍摄（必须高清可辨）",
+                        items: [
+                            { item: "品牌Logo刻印", standard: "腰带：皮带头背面及皮带身上的品牌刻字、型号。（核心）围巾/帽子：标签或织物上的品牌Logo。" },
+                            { item: "身份编码/日期码", standard: "腰带：皮带内侧或尾端的压印编码。围巾/帽子：洗标或标签上的序列号/型号。需微距拍清。" },
+                            { item: "品牌特征工艺", standard: "围巾：经典图案（如Hermès马车、LV老花）的细节、卷边工艺。腰带：缝线针距、封边工艺。帽子：特有的刺绣或徽章工艺。" }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // 全局变量
+        let isEditMode = false;
+        let currentCategory = 'bag';
+        let checklistData = {};
+        let editState = {
+            category: null,
+            sectionIndex: null,
+            itemIndex: null,
+            mode: 'add-item' // 'add-item', 'edit-item', 'add-section', 'edit-section'
+        };
+
+        // 状态存储，用于在使用模式下保存检核状态
+        let checklistStatus = {};
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChecklistData();
+            setCurrentDate();
+            setupEventListeners();
+            renderCurrentChecklist();
+            updateStats();
+            
+            // 默认显示使用模式
+            switchToUseMode();
+        });
+
+        // 从本地存储加载数据
+        function loadChecklistData() {
+            const savedData = localStorage.getItem('checklistData');
+            if (savedData) {
+                checklistData = JSON.parse(savedData);
+                // 检查是否有新添加的品类
+                for (const category in defaultChecklistData) {
+                    if (!checklistData[category]) {
+                        checklistData[category] = defaultChecklistData[category];
+                    }
+                }
+            } else {
+                checklistData = JSON.parse(JSON.stringify(defaultChecklistData));
+            }
+            
+            // 加载检核状态
+            const savedStatus = localStorage.getItem('checklistStatus');
+            if (savedStatus) {
+                checklistStatus = JSON.parse(savedStatus);
+            } else {
+                checklistStatus = {};
+            }
+        }
+
+        // 保存数据到本地存储
+        function saveChecklistData() {
+            localStorage.setItem('checklistData', JSON.stringify(checklistData));
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+            alert('数据已保存到本地存储！');
+        }
+
+        // 设置当前日期
+        function setCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            // 为所有检核表设置日期
+            document.querySelectorAll('.checklist-date').forEach(span => {
+                span.textContent = `检核日期: ${dateStr}`;
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 模式切换
+            document.getElementById('use-mode-btn').addEventListener('click', switchToUseMode);
+            document.getElementById('edit-mode-btn').addEventListener('click', switchToEditMode);
+            
+            // 品类切换
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentCategory = this.getAttribute('data-category');
+                    renderCurrentChecklist();
+                    updateStats();
+                });
+            });
+            
+            // 重置按钮
+            document.getElementById('reset-btn').addEventListener('click', resetCurrentChecklist);
+            
+            // 下载按钮
+            document.getElementById('download-word').addEventListener('click', generateWord);
+            document.getElementById('download-excel').addEventListener('click', generateExcel);
+            
+            // 保存品类按钮
+            document.getElementById('save-category-btn').addEventListener('click', saveCurrentCategory);
+            
+            // 模态框事件
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            document.getElementById('modal-cancel').addEventListener('click', closeModal);
+            document.getElementById('modal-save').addEventListener('click', saveModal);
+        }
+
+        // 切换到使用模式
+        function switchToUseMode() {
+            isEditMode = false;
+            document.getElementById('edit-notice').style.display = 'none';
+            document.getElementById('save-category-btn').style.display = 'none';
+            document.getElementById('use-mode-btn').style.backgroundColor = 'var(--secondary-color)';
+            document.getElementById('edit-mode-btn').style.backgroundColor = '#e0e0e0';
+            document.getElementById('edit-mode-btn').style.color = '#333';
+            
+            renderCurrentChecklist();
+            updateStats();
+        }
+
+        // 切换到编辑模式
+        function switchToEditMode() {
+            isEditMode = true;
+            document.getElementById('edit-notice').style.display = 'flex';
+            document.getElementById('save-category-btn').style.display = 'flex';
+            document.getElementById('use-mode-btn').style.backgroundColor = '#e0e0e0';
+            document.getElementById('use-mode-btn').style.color = '#333';
+            document.getElementById('edit-mode-btn').style.backgroundColor = 'var(--edit-color)';
+            document.getElementById('edit-mode-btn').style.color = 'white';
+            
+            renderCurrentChecklist();
+        }
+
+        // 渲染当前品类的检核表
+        function renderCurrentChecklist() {
+            const container = document.getElementById('checklist-container');
+            const data = checklistData[currentCategory];
+            
+            if (!data) return;
+            
+            // 创建检核表HTML
+            let html = `
+                <div id="${currentCategory}-checklist" class="checklist-container active">
+                    <div class="checklist-header">
+                        <div class="checklist-title">
+                            <i class="fas ${getCategoryIcon(currentCategory)}"></i>
+                            <h2>二奢商品拍摄质量检核表 - ${data.name}专用</h2>
+                        </div>
+                        <div class="checklist-date">检核日期: <span>${getCurrentDate()}</span></div>
+                    </div>
+                    
+                    <div class="checklist-info">
+                        <div class="info-group">
+                            <label for="${currentCategory}-product">${getProductLabel(currentCategory)}</label>
+                            <input type="text" id="${currentCategory}-product" placeholder="${getProductPlaceholder(currentCategory)}" value="${getProductValue(currentCategory)}">
+                        </div>
+                        <div class="info-group">
+                            <label for="${currentCategory}-staff">拍摄店员</label>
+                            <input type="text" id="${currentCategory}-staff" placeholder="请输入店员姓名" value="${getStaffValue(currentCategory)}">
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-sections">
+            `;
+            
+            // 渲染各个部分
+            data.sections.forEach((section, sectionIndex) => {
+                html += `
+                    <div class="section">
+                        <div class="section-header">
+                            <h3 class="section-title"><i class="fas fa-list"></i> ${section.title}</h3>
+                            ${isEditMode ? `<button class="edit-section-btn" onclick="openEditSectionModal('${currentCategory}', ${sectionIndex})"><i class="fas fa-edit"></i> 编辑部分</button>` : ''}
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="requirement-col">检核项目</th>
+                                    <th class="standard-col">要求标准</th>
+                                    <th class="status-col">${isEditMode ? '操作' : '是否通过'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // 渲染检核项目
+                section.items.forEach((item, itemIndex) => {
+                    const statusKey = `${currentCategory}-${sectionIndex}-${itemIndex}`;
+                    const currentStatus = checklistStatus[statusKey] || '';
+                    
+                    html += `
+                        <tr>
+                            <td>
+                                ${isEditMode ? 
+                                    `<input type="text" class="edit-input" value="${escapeHtml(item.item)}" oninput="updateChecklistItem('${currentCategory}', ${sectionIndex}, ${itemIndex}, 'item', this.value)">` : 
+                                    item.item}
+                            </td>
+                            <td>
+                                ${isEditMode ? 
+                                    `<textarea class="edit-textarea" oninput="updateChecklistItem('${currentCategory}', ${sectionIndex}, ${itemIndex}, 'standard', this.value)">${escapeHtml(item.standard)}</textarea>` : 
+                                    item.standard}
+                            </td>
+                            <td>
+                    `;
+                    
+                    if (isEditMode) {
+                        html += `
+                            <div class="action-buttons">
+                                <button class="action-btn move-up-btn" title="上移" onclick="moveItemUp('${currentCategory}', ${sectionIndex}, ${itemIndex})" ${itemIndex === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
+                                <button class="action-btn move-down-btn" title="下移" onclick="moveItemDown('${currentCategory}', ${sectionIndex}, ${itemIndex})" ${itemIndex === section.items.length - 1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
+                                <button class="action-btn delete-btn" title="删除" onclick="deleteItem('${currentCategory}', ${sectionIndex}, ${itemIndex})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        const statusClass = currentStatus === 'pass' ? 'status-pass' : currentStatus === 'fail' ? 'status-fail' : '';
+                        html += `
+                            <select class="status-select ${statusClass}" onchange="updateChecklistStatus('${currentCategory}', ${sectionIndex}, ${itemIndex}, this.value)">
+                                <option value="">请选择</option>
+                                <option value="pass" ${currentStatus === 'pass' ? 'selected' : ''}>通过</option>
+                                <option value="fail" ${currentStatus === 'fail' ? 'selected' : ''}>不通过</option>
+                            </select>
+                        `;
+                    }
+                    
+                    html += `
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                        ${isEditMode ? `<button class="btn btn-add" onclick="openAddItemModal('${currentCategory}', ${sectionIndex})"><i class="fas fa-plus"></i> 添加检核项目</button>` : ''}
+                    </div>
+                `;
+            });
+            
+            // 编辑模式下添加"添加部分"按钮
+            if (isEditMode) {
+                html += `
+                    <div style="padding: 20px;">
+                        <button class="btn btn-add" onclick="openAddSectionModal('${currentCategory}')"><i class="fas fa-plus-circle"></i> 添加新的检核部分</button>
+                    </div>
+                `;
+            }
+            
+            // 检核表底部
+            const conclusionValue = getConclusionValue(currentCategory) || '';
+            const remarkValue = getRemarkValue(currentCategory) || '';
+            const signatureValue = getSignatureValue(currentCategory) || '';
+            
+            html += `
+                    </div>
+                    
+                    <div class="checklist-footer">
+                        <div class="conclusion">
+                            <div>
+                                <select id="${currentCategory}-conclusion" class="conclusion-select ${conclusionValue === 'pass' ? 'conclusion-pass' : conclusionValue === 'fail' ? 'conclusion-fail' : ''}" onchange="updateConclusion('${currentCategory}', this.value)">
+                                    <option value="">总体检核结论</option>
+                                    <option value="pass" ${conclusionValue === 'pass' ? 'selected' : ''} class="conclusion-pass">通过</option>
+                                    <option value="fail" ${conclusionValue === 'fail' ? 'selected' : ''} class="conclusion-fail">不通过</option>
+                                    <option value="retake" ${conclusionValue === 'retake' ? 'selected' : ''} class="conclusion-retake">需补拍/修正</option>
+                                </select>
+                            </div>
+                            <div>
+                                <input type="text" id="${currentCategory}-remark" class="conclusion-remark" placeholder="改进意见/需补拍内容" value="${remarkValue}" oninput="updateRemark('${currentCategory}', this.value)">
+                            </div>
+                        </div>
+                        <div class="signature">
+                            <span>检核人签字:</span>
+                            <input type="text" id="${currentCategory}-signature" placeholder="请输入姓名" value="${signatureValue}" oninput="updateSignature('${currentCategory}', this.value)">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // 获取品类图标
+        function getCategoryIcon(category) {
+            const icons = {
+                'bag': 'fa-shopping-bag',
+                'watch': 'fa-clock',
+                'jewelry': 'fa-gem',
+                'shoes': 'fa-shoe-prints',
+                'clothing': 'fa-tshirt',
+                'accessories': 'fa-scarf'
+            };
+            return icons[category] || 'fa-list';
+        }
+
+        // 获取商品信息标签
+        function getProductLabel(category) {
+            const labels = {
+                'bag': '商品信息（品牌、型号）',
+                'watch': '商品信息（品牌、系列、型号）',
+                'jewelry': '商品信息（品类、材质、主石）',
+                'shoes': '商品信息（品牌、款式）',
+                'clothing': '商品信息（品类、品牌）',
+                'accessories': '商品信息（品类、品牌）'
+            };
+            return labels[category] || '商品信息';
+        }
+
+        // 获取商品信息占位符
+        function getProductPlaceholder(category) {
+            const placeholders = {
+                'bag': '例如: Hermès Birkin 30 金色扣',
+                'watch': '例如: Rolex Submariner 126610LN',
+                'jewelry': '例如: Cartier Love 手镯 18K黄金',
+                'shoes': '例如: Christian Louboutin 红底高跟鞋',
+                'clothing': '例如: Burberry 经典风衣',
+                'accessories': '例如: Hermès 丝巾 90cm'
+            };
+            return placeholders[category] || '请输入商品信息';
+        }
+
+        // 获取商品信息值
+        function getProductValue(category) {
+            return checklistStatus[`${category}-product`] || '';
+        }
+
+        // 获取店员信息值
+        function getStaffValue(category) {
+            return checklistStatus[`${category}-staff`] || '';
+        }
+
+        // 获取结论值
+        function getConclusionValue(category) {
+            return checklistStatus[`${category}-conclusion`] || '';
+        }
+
+        // 获取改进意见值
+        function getRemarkValue(category) {
+            return checklistStatus[`${category}-remark`] || '';
+        }
+
+        // 获取签名值
+        function getSignatureValue(category) {
+            return checklistStatus[`${category}-signature`] || '';
+        }
+
+        // 获取当前日期
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // 打开添加项目模态框
+        function openAddItemModal(category, sectionIndex) {
+            editState.category = category;
+            editState.sectionIndex = sectionIndex;
+            editState.itemIndex = null;
+            editState.mode = 'add-item';
+            
+            document.getElementById('modal-title').textContent = '添加检核项目';
+            document.getElementById('modal-item-name').value = '';
+            document.getElementById('modal-item-standard').value = '';
+            document.getElementById('modal-section-title-group').style.display = 'none';
+            
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        // 打开编辑项目模态框
+        function openEditItemModal(category, sectionIndex, itemIndex) {
+            editState.category = category;
+            editState.sectionIndex = sectionIndex;
+            editState.itemIndex = itemIndex;
+            editState.mode = 'edit-item';
+            
+            const item = checklistData[category].sections[sectionIndex].items[itemIndex];
+            
+            document.getElementById('modal-title').textContent = '编辑检核项目';
+            document.getElementById('modal-item-name').value = item.item;
+            document.getElementById('modal-item-standard').value = item.standard;
+            document.getElementById('modal-section-title-group').style.display = 'none';
+            
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        // 打开添加部分模态框
+        function openAddSectionModal(category) {
+            editState.category = category;
+            editState.sectionIndex = null;
+            editState.itemIndex = null;
+            editState.mode = 'add-section';
+            
+            document.getElementById('modal-title').textContent = '添加检核部分';
+            document.getElementById('modal-item-name').value = '';
+            document.getElementById('modal-item-standard').value = '';
+            document.getElementById('modal-section-title').value = '';
+            document.getElementById('modal-section-title-group').style.display = 'block';
+            
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        // 打开编辑部分模态框
+        function openEditSectionModal(category, sectionIndex) {
+            editState.category = category;
+            editState.sectionIndex = sectionIndex;
+            editState.itemIndex = null;
+            editState.mode = 'edit-section';
+            
+            const section = checklistData[category].sections[sectionIndex];
+            
+            document.getElementById('modal-title').textContent = '编辑检核部分';
+            document.getElementById('modal-item-name').value = '';
+            document.getElementById('modal-item-standard').value = '';
+            document.getElementById('modal-section-title').value = section.title;
+            document.getElementById('modal-section-title-group').style.display = 'block';
+            
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        // 保存模态框内容
+        function saveModal() {
+            const category = editState.category;
+            
+            if (editState.mode === 'add-item') {
+                const itemName = document.getElementById('modal-item-name').value.trim();
+                const itemStandard = document.getElementById('modal-item-standard').value.trim();
+                
+                if (!itemName || !itemStandard) {
+                    alert('请填写完整的项目信息！');
+                    return;
+                }
+                
+                checklistData[category].sections[editState.sectionIndex].items.push({
+                    item: itemName,
+                    standard: itemStandard
+                });
+                
+            } else if (editState.mode === 'edit-item') {
+                const itemName = document.getElementById('modal-item-name').value.trim();
+                const itemStandard = document.getElementById('modal-item-standard').value.trim();
+                
+                if (!itemName || !itemStandard) {
+                    alert('请填写完整的项目信息！');
+                    return;
+                }
+                
+                checklistData[category].sections[editState.sectionIndex].items[editState.itemIndex] = {
+                    item: itemName,
+                    standard: itemStandard
+                };
+                
+            } else if (editState.mode === 'add-section') {
+                const sectionTitle = document.getElementById('modal-section-title').value.trim();
+                
+                if (!sectionTitle) {
+                    alert('请填写部分标题！');
+                    return;
+                }
+                
+                checklistData[category].sections.push({
+                    title: sectionTitle,
+                    items: []
+                });
+                
+            } else if (editState.mode === 'edit-section') {
+                const sectionTitle = document.getElementById('modal-section-title').value.trim();
+                
+                if (!sectionTitle) {
+                    alert('请填写部分标题！');
+                    return;
+                }
+                
+                checklistData[category].sections[editState.sectionIndex].title = sectionTitle;
+            }
+            
+            closeModal();
+            renderCurrentChecklist();
+        }
+
+        // 更新检核项目
+        function updateChecklistItem(category, sectionIndex, itemIndex, field, value) {
+            if (checklistData[category] && 
+                checklistData[category].sections[sectionIndex] && 
+                checklistData[category].sections[sectionIndex].items[itemIndex]) {
+                
+                checklistData[category].sections[sectionIndex].items[itemIndex][field] = value;
+            }
+        }
+
+        // 上移项目
+        function moveItemUp(category, sectionIndex, itemIndex) {
+            if (itemIndex <= 0) return;
+            
+            const items = checklistData[category].sections[sectionIndex].items;
+            const temp = items[itemIndex];
+            items[itemIndex] = items[itemIndex - 1];
+            items[itemIndex - 1] = temp;
+            
+            renderCurrentChecklist();
+        }
+
+        // 下移项目
+        function moveItemDown(category, sectionIndex, itemIndex) {
+            const items = checklistData[category].sections[sectionIndex].items;
+            if (itemIndex >= items.length - 1) return;
+            
+            const temp = items[itemIndex];
+            items[itemIndex] = items[itemIndex + 1];
+            items[itemIndex + 1] = temp;
+            
+            renderCurrentChecklist();
+        }
+
+        // 删除项目
+        function deleteItem(category, sectionIndex, itemIndex) {
+            if (!confirm('确定要删除这个检核项目吗？')) return;
+            
+            checklistData[category].sections[sectionIndex].items.splice(itemIndex, 1);
+            renderCurrentChecklist();
+        }
+
+        // 保存当前品类
+        function saveCurrentCategory() {
+            saveChecklistData();
+        }
+
+        // 更新检核状态
+        function updateChecklistStatus(category, sectionIndex, itemIndex, value) {
+            const statusKey = `${category}-${sectionIndex}-${itemIndex}`;
+            checklistStatus[statusKey] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+            updateStats();
+        }
+
+        // 更新商品信息
+        function updateProduct(category, value) {
+            checklistStatus[`${category}-product`] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+        }
+
+        // 更新店员信息
+        function updateStaff(category, value) {
+            checklistStatus[`${category}-staff`] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+        }
+
+        // 更新结论
+        function updateConclusion(category, value) {
+            checklistStatus[`${category}-conclusion`] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+        }
+
+        // 更新改进意见
+        function updateRemark(category, value) {
+            checklistStatus[`${category}-remark`] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+        }
+
+        // 更新签名
+        function updateSignature(category, value) {
+            checklistStatus[`${category}-signature`] = value;
+            localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            if (isEditMode) {
+                // 编辑模式下不显示统计数据
+                document.getElementById('total-checked').textContent = '-';
+                document.getElementById('passed-items').textContent = '-';
+                document.getElementById('failed-items').textContent = '-';
+                return;
+            }
+            
+            const data = checklistData[currentCategory];
+            let total = 0;
+            let passed = 0;
+            let failed = 0;
+            
+            if (data && data.sections) {
+                data.sections.forEach((section, sectionIndex) => {
+                    section.items.forEach((item, itemIndex) => {
+                        const statusKey = `${currentCategory}-${sectionIndex}-${itemIndex}`;
+                        const status = checklistStatus[statusKey];
+                        
+                        if (status) {
+                            total++;
+                            if (status === 'pass') passed++;
+                            if (status === 'fail') failed++;
+                        }
+                    });
+                });
+            }
+            
+            document.getElementById('total-checked').textContent = total;
+            document.getElementById('passed-items').textContent = passed;
+            document.getElementById('failed-items').textContent = failed;
+        }
+
+        // 重置当前检核表
+        function resetCurrentChecklist() {
+            const confirmReset = confirm('确定要重置当前检核表吗？所有已填数据将被清空。');
+            
+            if (confirmReset) {
+                // 删除当前品类的所有状态数据
+                Object.keys(checklistStatus).forEach(key => {
+                    if (key.startsWith(currentCategory)) {
+                        delete checklistStatus[key];
+                    }
+                });
+                
+                localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+                renderCurrentChecklist();
+                updateStats();
+                alert('当前检核表已重置！');
+            }
+        }
+
+        // 生成Word文档
+        function generateWord() {
+            const data = checklistData[currentCategory];
+            const categoryNames = {
+                'bag': '包袋类',
+                'watch': '腕表类',
+                'jewelry': '首饰类',
+                'shoes': '鞋靴类',
+                'clothing': '服饰类',
+                'accessories': '配件类'
+            };
+            
+            const product = checklistStatus[`${currentCategory}-product`] || '未填写';
+            const staff = checklistStatus[`${currentCategory}-staff`] || '未填写';
+            const date = getCurrentDate();
+            const conclusion = checklistStatus[`${currentCategory}-conclusion`] || '未选择';
+            const remark = checklistStatus[`${currentCategory}-remark`] || '无';
+            const signature = checklistStatus[`${currentCategory}-signature`] || '未签名';
+            
+            // 获取检核项目
+            let itemsHTML = '';
+            
+            data.sections.forEach(section => {
+                const sectionTitle = section.title;
+                itemsHTML += `<h3>${sectionTitle}</h3>`;
+                
+                let tableHTML = '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">';
+                tableHTML += '<tr><th>检核项目</th><th>要求标准</th><th>是否通过</th></tr>';
+                
+                section.items.forEach((item, itemIndex) => {
+                    const statusKey = `${currentCategory}-${data.sections.indexOf(section)}-${itemIndex}`;
+                    const status = checklistStatus[statusKey] || '未选择';
+                    const statusText = status === 'pass' ? '通过' : status === 'fail' ? '不通过' : '未选择';
+                    
+                    tableHTML += `<tr><td>${item.item}</td><td>${item.standard}</td><td>${statusText}</td></tr>`;
+                });
+                
+                tableHTML += '</table>';
+                itemsHTML += tableHTML;
+            });
+            
+            // 创建Word文档内容
+            const wordContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>二奢商品拍摄质量检核报告 - ${categoryNames[currentCategory]}</title>
+                    <style>
+                        body { font-family: 'Microsoft YaHei', sans-serif; margin: 20px; }
+                        h1 { color: #8B4513; text-align: center; }
+                        h2 { color: #5D4037; border-bottom: 2px solid #FAEBD7; padding-bottom: 5px; }
+                        h3 { color: #A0522D; }
+                        table { margin: 15px 0; }
+                        th { background-color: #FAEBD7; padding: 10px; }
+                        td { padding: 10px; border-bottom: 1px solid #ddd; }
+                        .info { margin: 20px 0; }
+                        .conclusion { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #8B4513; margin: 20px 0; }
+                        .footer { margin-top: 30px; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <h1>二奢商品拍摄质量检核报告</h1>
+                    <h2>${categoryNames[currentCategory]}专用</h2>
+                    
+                    <div class="info">
+                        <p><strong>商品信息：</strong>${product}</p>
+                        <p><strong>拍摄店员：</strong>${staff}</p>
+                        <p><strong>检核日期：</strong>${date}</p>
+                    </div>
+                    
+                    ${itemsHTML}
+                    
+                    <div class="conclusion">
+                        <h3>总体检核结论</h3>
+                        <p><strong>结论：</strong>${conclusion === 'pass' ? '通过' : conclusion === 'fail' ? '不通过' : conclusion === 'retake' ? '需补拍/修正' : '未选择'}</p>
+                        <p><strong>改进意见/需补拍内容：</strong>${remark}</p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p><strong>检核人签字：</strong>${signature}</p>
+                        <p><strong>生成时间：</strong>${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // 创建Blob并下载
+            const blob = new Blob([wordContent], { type: 'application/msword' });
+            const fileName = `二奢拍摄检核报告_${categoryNames[currentCategory]}_${date}.doc`;
+            saveAs(blob, fileName);
+        }
+
+        // 生成Excel文档
+        function generateExcel() {
+            const data = checklistData[currentCategory];
+            const categoryNames = {
+                'bag': '包袋类',
+                'watch': '腕表类',
+                'jewelry': '首饰类',
+                'shoes': '鞋靴类',
+                'clothing': '服饰类',
+                'accessories': '配件类'
+            };
+            
+            const product = checklistStatus[`${currentCategory}-product`] || '未填写';
+            const staff = checklistStatus[`${currentCategory}-staff`] || '未填写';
+            const date = getCurrentDate();
+            const conclusion = checklistStatus[`${currentCategory}-conclusion`] || '未选择';
+            const remark = checklistStatus[`${currentCategory}-remark`] || '无';
+            const signature = checklistStatus[`${currentCategory}-signature`] || '未签名';
+            
+            // 创建Excel数据
+            const wb = XLSX.utils.book_new();
+            
+            // 基本信息工作表
+            const infoData = [
+                ['二奢商品拍摄质量检核报告', '', ''],
+                ['品类', categoryNames[currentCategory], ''],
+                ['商品信息', product, ''],
+                ['拍摄店员', staff, ''],
+                ['检核日期', date, ''],
+                ['总体结论', conclusion === 'pass' ? '通过' : conclusion === 'fail' ? '不通过' : conclusion === 'retake' ? '需补拍/修正' : '未选择', ''],
+                ['改进意见', remark, ''],
+                ['检核人签字', signature, ''],
+                ['生成时间', new Date().toLocaleString(), ''],
+                ['', '', ''],
+                ['检核项目明细', '', '']
+            ];
+            
+            const infoWs = XLSX.utils.aoa_to_sheet(infoData);
+            XLSX.utils.book_append_sheet(wb, infoWs, '基本信息');
+            
+            // 检核项目工作表
+            const itemsData = [['检核项目', '要求标准', '是否通过', '所属部分']];
+            
+            data.sections.forEach((section, sectionIndex) => {
+                const sectionTitle = section.title;
+                
+                section.items.forEach((item, itemIndex) => {
+                    const statusKey = `${currentCategory}-${sectionIndex}-${itemIndex}`;
+                    const status = checklistStatus[statusKey] || '未选择';
+                    const statusText = status === 'pass' ? '通过' : status === 'fail' ? '不通过' : '未选择';
+                    
+                    itemsData.push([item.item, item.standard, statusText, sectionTitle]);
+                });
+            });
+            
+            const itemsWs = XLSX.utils.aoa_to_sheet(itemsData);
+            XLSX.utils.book_append_sheet(wb, itemsWs, '检核项目');
+            
+            // 生成Excel文件
+            const fileName = `二奢拍摄检核报告_${categoryNames[currentCategory]}_${date}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // 填充示例数据
+        function populateSampleData() {
+            // 包袋类示例数据
+            if (!checklistStatus['bag-product']) {
+                checklistStatus['bag-product'] = 'Louis Vuitton Neverfull MM 老花';
+                checklistStatus['bag-staff'] = '张明';
+                checklistStatus['bag-conclusion'] = 'retake';
+                checklistStatus['bag-remark'] = '瑕疵部位拍摄不够清晰，需补拍包角磨损处';
+                checklistStatus['bag-signature'] = '李质检';
+                
+                // 设置一些检核状态
+                checklistStatus['bag-0-0'] = 'pass';
+                checklistStatus['bag-0-1'] = 'pass';
+                checklistStatus['bag-0-2'] = 'fail';
+                checklistStatus['bag-1-0'] = 'pass';
+                checklistStatus['bag-1-1'] = 'pass';
+                
+                localStorage.setItem('checklistStatus', JSON.stringify(checklistStatus));
+            }
+            
+            updateStats();
+        }
+
+        // 页面加载后填充示例数据（演示用）
+        window.addEventListener('load', populateSampleData);
+    </script>
+</body>
+</html>
